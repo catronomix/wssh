@@ -52,6 +52,8 @@ Use `wsshd` when you don't control the client.
   relay.js, run-remote.sh      # wssh remote half (managed by `wssh --deploy`)
   node_modules/node-pty/       # the node-pty that ships build/Release/conpty/conpty.dll
   wsshd.js, mousetest.js       # this
+  wsshd-start.cmd              # sets WSSHD_BIND / WSSHD_PORT, runs wsshd.js
+  wsshd-launch.vbs             # Scheduled Task action: runs the .cmd hidden
   termrover-attach.js          # `herdr terminal attach` shim for TermRover (see below)
   termrover-attach             # its sh wrapper (must stay executable, next to wsshd.js)
   deps/package.json            # {"dependencies": {"ssh2": "1.17.0"}}
@@ -82,8 +84,13 @@ fields — watch `wsshd.log` for `WARNING` after any ssh2 upgrade.
    into `~/wssh-relay/`.
 3. `mkdir deps`, write the `package.json` above, `cd deps && npm install`.
 4. Run it under the user's logon as a Scheduled Task (`Register-ScheduledTask`,
-   action `node.exe C:\Users\<u>\wssh-relay\wsshd.js`, hidden, restart on failure,
-   no execution time limit). It must run in the user's session, not as a service.
+   action `wscript.exe C:\Users\<u>\wssh-relay\wsshd-launch.vbs`, restart on
+   failure, no execution time limit). It must run in the user's session, not as
+   a service. Do **not** point the action at `wsshd-start.cmd` directly: the
+   task runs interactively, so the console window is visible at every logon
+   even with the task's "Hidden" flag set. `wsshd-launch.vbs` starts the same
+   `.cmd` (which owns `WSSHD_BIND` / `WSSHD_PORT`) with `SW_HIDE`, so no window
+   appears.
    **Principal must be `-RunLevel Highest`**: `administrators_authorized_keys` is
    ACL'd to Administrators + SYSTEM, and a task with a UAC-filtered token cannot
    read it — every key that lives only there is then rejected as "no matching

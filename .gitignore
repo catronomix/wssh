@@ -5,6 +5,15 @@
 .DS_Store
 node_modules/
 
+# Never commit deployed state or credentials.
+*.log
+*.pem
+*.key
+.env
+.env.*
+!/.env.example
+server/wsshd_host_*
+
 # Real captured pane scrollback for c3_phone_view_replay.py -- can contain
 # whatever was on screen when it was captured; this repo is public. The test
 # falls back to a synthetic corpus when this file is absent.

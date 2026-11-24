@@ -10,6 +10,13 @@ wssh my-box -- herdr     # or go straight into a TUI
 
 *(Read this in [中文](README.zh.md).)*
 
+> **This is a fork of [0dian/wssh](https://github.com/0dian/wssh)**, maintained at
+> [catronomix/wssh](https://github.com/catronomix/wssh). It carries the upstream
+> work plus a few deployment fixes: a no-console-window Scheduled Task launcher,
+> auth diagnostics in `wsshd` (method and rejected-key fingerprint are logged),
+> and notes for phone SSH apps that can only import a key. Install from this
+> fork so those changes are included.
+
 ## The problem
 
 Run a mouse-driven TUI over `ssh -t` to a Windows host and the mouse is dead.
@@ -89,7 +96,7 @@ around, so a node-pty without that file will not help. Two ways to get one:
 ## Install
 
 ```sh
-npm install -g github:0dian/wssh   # then: wssh --deploy my-box
+npm install -g github:catronomix/wssh   # then: wssh --deploy my-box
 ```
 
 This needs Node.js ≥ 18 and `git` on the client. (An npm package will follow;
@@ -98,7 +105,7 @@ the GitHub install is the supported path for now.)
 Or, without npm — clone the repo:
 
 ```sh
-git clone https://github.com/0dian/wssh.git ~/wssh
+git clone https://github.com/catronomix/wssh.git ~/wssh
 chmod +x ~/wssh/wssh
 ln -s ~/wssh/wssh /usr/local/bin/wssh     # or anywhere on your PATH
 ```
@@ -286,7 +293,11 @@ trap that deletes the bundled node-pty are in [server/README.md](server/README.m
 1. Install **nothing** on the phone; just add a new host in the SSH app:
    host = the machine's tailnet IP, port = 2222, auth = public key.
 2. Add the key the app generates to the host's `authorized_keys` (the same
-   files sshd already reads).
+   files sshd already reads). If the app has no key generator (YuzuSSH's key
+   screen only accepts a pasted/imported private key), make the pair on the
+   host instead: `ssh-keygen -t ed25519 -N "" -C phone -f phone_key`, append
+   `phone_key.pub`'s contents to `authorized_keys`, and import `phone_key`
+   into the app. Delete `phone_key` from the host afterwards.
 3. **`WSSHD_BIND` defaults to `127.0.0.1`** — the phone can only reach it
    once you add the tailnet IP too, e.g. `WSSHD_BIND=127.0.0.1,100.x.y.z`.
    This is the single most common reason a phone "can't connect".

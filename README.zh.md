@@ -10,6 +10,11 @@ wssh my-box -- herdr     # 或者直接进某个 TUI
 
 *（English version: [README.md](README.md)）*
 
+> **这是 [0dian/wssh](https://github.com/0dian/wssh) 的 fork**，维护在
+> [catronomix/wssh](https://github.com/catronomix/wssh)。在上游基础上增加了部署修复：
+> 计划任务无控制台窗口启动、`wsshd` 认证诊断（记录认证方式与被拒绝密钥的指纹），
+> 以及只能导入密钥的手机 SSH 应用的说明。请从本 fork 安装。
+
 ## 问题
 
 用 `ssh -t` 连到 Windows 机器跑一个鼠标驱动的 TUI，鼠标是死的。键盘正常、渲染正常，
@@ -76,7 +81,7 @@ Windows 客户端另有一处必须在本地修掉的东西，见
 ## 安装
 
 ```sh
-npm install -g github:0dian/wssh   # 然后：wssh --deploy my-box
+npm install -g github:catronomix/wssh   # 然后：wssh --deploy my-box
 ```
 
 客户端需要 Node.js ≥ 18 和 git。（npm 包稍后跟上，目前以 GitHub 安装为准。）
@@ -84,7 +89,7 @@ npm install -g github:0dian/wssh   # 然后：wssh --deploy my-box
 或者不用 npm，直接 clone 仓库：
 
 ```sh
-git clone https://github.com/0dian/wssh.git ~/wssh
+git clone https://github.com/catronomix/wssh.git ~/wssh
 chmod +x ~/wssh/wssh
 ln -s ~/wssh/wssh /usr/local/bin/wssh     # 或者 PATH 里任何位置
 ```

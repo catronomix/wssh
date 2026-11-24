@@ -19,6 +19,7 @@
 
 'use strict';
 
+const crypto = require('crypto');
 const fs = require('fs');
 const os = require('os');
 const net = require('net');
@@ -204,11 +205,22 @@ function hashOf(ctx) {
   return undefined;
 }
 
+// SHA256 fingerprint in OpenSSH's "SHA256:..." form, for log lines: lets a
+// user compare what the client offered against what `ssh-keygen -lf` says.
+// Takes the raw public-key blob (ctx.key.data), not a parsed key: during the
+// key-query phase ctx.key is a plain { algo, data } object.
+function fingerprint(blob) {
+  return 'SHA256:' + crypto.createHash('sha256').update(blob).digest('base64').replace(/=+$/, '');
+}
+
 function authenticate(ctx, peer) {
-  if (ctx.method !== 'publickey') return ctx.reject(['publickey']);
+  if (ctx.method !== 'publickey') {
+    log(peer + ' auth reject user=' + ctx.username + ' method=' + ctx.method + ' (publickey only)');
+    return ctx.reject(['publickey']);
+  }
   const want = keyTypeOf(ctx.key.algo);
   const match = loadAuthorizedKeys().find(a => a.key.type === want && a.key.getPublicSSH().equals(ctx.key.data));
-  if (!match) { log(peer + ' auth reject user=' + ctx.username + ' algo=' + ctx.key.algo + ' (no matching key)'); return ctx.reject(['publickey']); }
+  if (!match) { log(peer + ' auth reject user=' + ctx.username + ' algo=' + ctx.key.algo + ' ' + fingerprint(ctx.key.data) + ' (no matching key)'); return ctx.reject(['publickey']); }
   if (ctx.signature === undefined) return ctx.accept(); // key query phase, no signature yet
   let ok = false;
   try { ok = match.key.verify(ctx.blob, ctx.signature, hashOf(ctx)) === true; } catch (e) { log(peer + ' verify error: ' + e); }
@@ -792,7 +804,10 @@ function onStreamLocal(accept, reject, info, peer) {
 function onClient(client, info) {
   const peer = (info.ip || '?') + ':' + (info.port || '?');
   log(peer + ' connected ' + (info.header && info.header.identRaw || ''));
-  client.on('authentication', ctx => authenticate(ctx, peer));
+  client.on('authentication', ctx => {
+    try { authenticate(ctx, peer); }
+    catch (e) { log(peer + ' auth error: ' + (e && e.message || e)); try { ctx.reject(['publickey']); } catch (e2) {} }
+  });
   client.on('ready', () => {
     client.on('session', (accept, reject) => onSession(client, peer, accept));
     client.on('openssh.streamlocal', (accept, reject, info) => onStreamLocal(accept, reject, info, peer));
