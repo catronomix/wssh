@@ -1,6 +1,6 @@
 {
   "name": "@0dian/wssh",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "SSH into a Windows host and get a shell where mouse input actually works",
   "license": "MIT",
   "bin": {
